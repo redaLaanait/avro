@@ -6,6 +6,7 @@ import (
 	"crypto/sha256"
 	"errors"
 	"fmt"
+	"log"
 	"sort"
 	"strconv"
 	"strings"
@@ -16,13 +17,11 @@ import (
 	jsoniter "github.com/json-iterator/go"
 )
 
-type nullDefaultType struct{}
-
-func (nullDefaultType) MarshalJSON() ([]byte, error) {
+func (null) MarshalJSON() ([]byte, error) {
 	return []byte("null"), nil
 }
 
-var nullDefault nullDefaultType = struct{}{}
+var nullDefault null = struct{}{}
 
 var (
 	schemaReserved = []string{
@@ -1576,14 +1575,24 @@ func validateName(name string) error {
 }
 
 func validateDefault(name string, schema Schema, def any) (any, error) {
+	ddef := def
 	def, ok := isValidDefault(schema, def)
 	if !ok {
+		log.Println("--> default field raw err ", name, ddef)
+		log.Printf("--> default field raw err %+v %T ", ddef, ddef)
 		return nil, fmt.Errorf("avro: invalid default for field %s. %+v not a %s", name, def, schema.Type())
 	}
 	return def, nil
 }
 
-func isValidDefault(schema Schema, def any) (any, bool) {
+func isValidDefault(schema Schema, def any) (d any, ok bool) {
+	defer func() {
+		if !ok {
+
+			log.Printf("isvalid false %v %T ", schema.Type(), def)
+		}
+
+	}()
 	switch schema.Type() {
 	case Ref:
 		ref := schema.(*RefSchema)
@@ -1673,6 +1682,7 @@ func isValidDefault(schema Schema, def any) (any, bool) {
 		}
 		return arr, true
 	case Map:
+		log.Printf("raw def map %+v %T", def, def)
 		m, ok := def.(map[string]any)
 		if !ok {
 			return nil, false
@@ -1687,6 +1697,7 @@ func isValidDefault(schema Schema, def any) (any, bool) {
 
 			m[k] = v
 		}
+		log.Println("valid map def", m)
 		return m, true
 	case Union:
 		unionSchema := schema.(*UnionSchema)

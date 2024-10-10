@@ -21,6 +21,7 @@ func NewTypeResolver() *TypeResolver {
 	r := &TypeResolver{}
 
 	// Register basic types
+	r.Register(string(Null), null{})
 	r.Register(string(Null), &null{})
 	r.Register(string(Int), int8(0))
 	r.Register(string(Int), int16(0))
