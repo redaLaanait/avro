@@ -1746,7 +1746,7 @@ func isValidDefaultBytes(def string) ([]byte, bool) {
 	runes := []rune(def)
 	l := len(runes)
 	b := make([]byte, l)
-	for i := 0; i < l; i++ {
+	for i := range l {
 		if runes[i] < 0 || runes[i] > 255 {
 			return nil, false
 		}
